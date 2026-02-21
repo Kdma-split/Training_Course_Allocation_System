@@ -12,9 +12,11 @@
         public bool IsActive { get; set; } = true;  // determines whether the course is active or not at a channel level... (soft delete)
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public Course Course { get; set; }
         public Channel Channel { get; set; }
         public Assignment Assignment { get; set; }
+        public ICollection<AssignmentChannelUser> AssignmentChannelUsers { get; set; } = new List<AssignmentChannelUser>();
     }
 }
 

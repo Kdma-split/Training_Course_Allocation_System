@@ -18,37 +18,6 @@
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-namespace backend.Models
-{
-    class ChannelCourse
-    {
-        public int CourseChannelId { get; set; }
-        public Guid ChannelId { get; set; }
-        public Guid CourseId { get; set; } 
-        public string Role { get; set; } // e.g., "Editor", "Viewer", "Author"
-        public bool IsActive { get; set; }  // determines whether the course is deleted or not... (soft delete)
-        public string status { get; set; } // e.g., "Pending", "Completed"
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-
-        public IEnumerable<User> users { get; set; }
-}
-
 // SIGNIFICANCE OF "status" FIELD:
 
 

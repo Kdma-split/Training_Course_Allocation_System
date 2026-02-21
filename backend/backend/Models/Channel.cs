@@ -9,11 +9,11 @@ namespace backend.Models
         public string Name { get; set; }
         public string Description { get; set; }
 
-        [ForeignKey("UserId")]
         public Guid CreatedById { get; set; }
+        public User CreatedBy { get; set; }
 
-        [ForeignKey("UserId")]
-        public Guid Admin { get; set; } 
+        public Guid AdminId { get; set; }
+        public User Admin { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

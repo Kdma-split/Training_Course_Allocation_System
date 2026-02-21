@@ -11,6 +11,11 @@
         public string? task { get; set; } // e.g., "Video Upload", "Course Creation", "Assignment Creation", etc. (can be used for analytics and insights to track which type of task is being performed more by the users, which type of task is being performed more in which channel, etc.)
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+
+
+        public ChannelCourse ChannelCourse { get; set; }
+        public User User { get; set; }
+
     }
 }
 

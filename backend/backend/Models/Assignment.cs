@@ -17,26 +17,4 @@
 
 
 
-
-
-
 // MULTIPLE SAME ASSIGNMENTS CAN HAVE A SIMILAR NAME BUT NOT THE SAME ---- UNNECCESSARY RECORDS ESCALATION, HOW TO TACKLE THIS ISSUE --- AT THE SAME TIME YOU HAVE TO PRESERVE THE SAME NAME GIVEN BY THE AUTHOR AS YOU HAVE TO RETURN THE SAME TO THE FRONTEND ---- ONE WAY OF DOING THIS IS TO USE FIXED OPTIONS BUTTON ON THE FRONTEND...
-
-
-
-
-
-//namespace backend.Models
-//{
-//    class Assignment
-//    {
-//        public int AssignmentId { get; set; }
-//        public Guid AuthorId { get; set; }
-//        public string Name { get; set; }
-//        public int numberAttended { get; set; } // number of users who have attended the course assignment
-
-//        public string Role { get; set; } // e.g., "Editor", "Viewer"
-//        public DateTime AssignedAt { get; set; }
-//        public IEnumerable<Course> Courses { get; set; }
-//    }
-//}
