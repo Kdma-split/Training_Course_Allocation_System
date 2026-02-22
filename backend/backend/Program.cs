@@ -16,8 +16,32 @@ builder.Services.AddDbContext<TrainingCourseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+var MyAllowSpecificOrigins = "";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost.5173", 
+                                             "http://localhost:5101",
+                                             "http://127.0.0.1:5101",
+                                             "http://127.0.0.1:5173"
+                                 ) // Specify the allowed origins
+                                .AllowAnyHeader() // Allow all headers
+                                .AllowAnyMethod(); // Allow all HTTP methods (GET, POST, etc.)
+                      });
+});
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<IAssignmentRepository, AssignmentRepository>();
+builder.Services.AddScoped<IChannelRepository, ChannelRepository>();
+builder.Services.AddScoped<IChannelUserRepository, ChannelUserRepository>();
+builder.Services.AddScoped<IChannelCourseRepository, ChannelCourseRepository>();
+builder.Services.AddScoped<IChannelAssignmentRepository, ChannelAssignmentRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPermissionService, SingleChannelCoursePermissionService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;

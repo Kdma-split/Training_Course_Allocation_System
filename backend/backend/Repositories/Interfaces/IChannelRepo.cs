@@ -6,7 +6,8 @@ namespace backend.Repositories.Interfaces
     {
         Task<IEnumerable<Channel>> GetAllChannelsAsync();
         Task<Channel> GetChannelByIdAsync(Guid id);
-        Task<IEnumerable<Channel?>?> GetChnannelByUserId(Guid id, string userType);
+        Task<IEnumerable<Channel?>?> GetChannelsByUserIdAsync(Guid id, string userType);
+        Task<Channel?> GetChannelByUserIdAsync(Guid channelId, Guid userId, string userType);
         Task<Channel> CreateChannelAsync(Channel channel);
         Task<Channel> UpdateChannelAsync(Guid id, Channel channel);
         Task<bool> DeleteChannelAsync(Guid id);

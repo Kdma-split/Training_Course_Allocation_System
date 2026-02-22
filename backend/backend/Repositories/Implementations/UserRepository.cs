@@ -29,9 +29,9 @@ namespace backend.Repositories.Implementations
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
+        public async Task<User?> GetUserByRoleAsync(string role)
         {
-            return await _context.Users.Where(u => u.Role == role).ToListAsync();
+            return await _context.Users.FirstOrDefaultAsync(u => u.Role == role);
         }
 
         public async Task<User> CreateUserAsync(User user)
@@ -41,11 +41,20 @@ namespace backend.Repositories.Implementations
             return user;
         }
 
-        public async Task<User> UpdateUserAsync(User user)
+        public async Task<User> UpdateUserAsync(Guid id, User user)
         {
-            _context.Users.Update(user);
+            var existingUser = await _context.Users.FindAsync(id);
+            if (existingUser == null)
+                throw new InvalidOperationException("User not found");
+
+            existingUser.Name = user.Name;
+            existingUser.Email = user.Email;
+            existingUser.PasswordHash = user.PasswordHash;
+            existingUser.Age = user.Age;
+            existingUser.UpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
-            return user;
+            return existingUser;
         }
 
         public async Task<bool> DeleteUserAsync(Guid id)

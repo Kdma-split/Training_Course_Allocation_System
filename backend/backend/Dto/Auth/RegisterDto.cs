@@ -2,7 +2,7 @@
 
 namespace backend.Dto.Auth
 {
-    public class LoginUser
+    public class RegisterUser
     {
         [Required]
         [StringLength(100)]
