@@ -1,10 +1,8 @@
-﻿using backend.Models;
-
-namespace backend.models
+﻿namespace backend.Models
 {
-    public class CourseApprovals
+    public class CourseApproval
     {
-        public Guid CourseApprovalsId { get; set; }
+        public Guid CourseApprovalId { get; set; }
         public Guid CourseChannelUserId { get; set; }
         public string ApprovalDescription { get; set; }
         public string Status { get; set; } = "pending"; // pending, approved, rejected

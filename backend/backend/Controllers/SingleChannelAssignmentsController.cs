@@ -1,26 +1,26 @@
+using backend.Dto;
+using backend.Models;
+using backend.Repositories.Interfaces;
+using backend.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
 namespace backend.Controllers
 {
-    using backend.Dto;
-    using backend.Models;
-    using backend.Repositories.Interfaces;
-    using backend.Services;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using System.Security.Claims;
-
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class AssignmentsController : ControllerBase
+    public class SingleChannelAssignmentsController : ControllerBase
     {
         private readonly IAssignmentRepository _assignmentRepository;
         private readonly IChannelAssignmentRepository _channelAssignmentRepository;
-        private readonly IPermissionService _permissionService;
+        private readonly ISingleChannelCoursePermissionService _permissionService;
 
-        public AssignmentsController(
+        public SingleChannelAssignmentsController(
             IAssignmentRepository assignmentRepository,
             IChannelAssignmentRepository channelAssignmentRepository,
-            IPermissionService permissionService)
+            ISingleChannelCoursePermissionService permissionService)
         {
             _assignmentRepository = assignmentRepository;
             _channelAssignmentRepository = channelAssignmentRepository;

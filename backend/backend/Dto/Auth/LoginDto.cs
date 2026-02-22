@@ -2,7 +2,7 @@
 
 namespace backend.Dto.Auth
 {
-    public class LoginUser
+    public class LoginDto
     {
         [Required]
         [EmailAddress]

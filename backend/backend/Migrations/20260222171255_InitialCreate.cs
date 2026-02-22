@@ -16,7 +16,7 @@ namespace backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Domain = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NumberAttended = table.Column<int>(type: "int", nullable: false),
                     AssignedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -50,9 +50,14 @@ namespace backend.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Age = table.Column<int>(type: "int", nullable: false),
+                    coursesContributed = table.Column<int>(type: "int", nullable: false),
+                    assignmentsContributed = table.Column<int>(type: "int", nullable: false),
+                    coursesCompleted = table.Column<int>(type: "int", nullable: false),
+                    assignmentsCompleted = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -86,7 +91,7 @@ namespace backend.Migrations
                 name: "Channels",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ChannelId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -96,7 +101,7 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Channels", x => x.Id);
+                    table.PrimaryKey("PK_Channels", x => x.ChannelId);
                     table.ForeignKey(
                         name: "FK_Channels_Users_AdminId",
                         column: x => x.AdminId,
@@ -135,7 +140,7 @@ namespace backend.Migrations
                         name: "FK_ChannelAssignments_Channels_ChannelId",
                         column: x => x.ChannelId,
                         principalTable: "Channels",
-                        principalColumn: "Id",
+                        principalColumn: "ChannelId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChannelAssignments_Courses_CourseId",
@@ -162,7 +167,7 @@ namespace backend.Migrations
                         name: "FK_ChannelCourses_Channels_ChannelId",
                         column: x => x.ChannelId,
                         principalTable: "Channels",
-                        principalColumn: "Id",
+                        principalColumn: "ChannelId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChannelCourses_Courses_CourseId",
@@ -191,7 +196,7 @@ namespace backend.Migrations
                         name: "FK_ChannelUsers_Channels_ChannelId",
                         column: x => x.ChannelId,
                         principalTable: "Channels",
-                        principalColumn: "Id",
+                        principalColumn: "ChannelId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChannelUsers_Users_UserId",

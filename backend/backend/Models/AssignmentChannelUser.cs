@@ -15,6 +15,7 @@
 
         public ChannelAssignment ChannelAssignment { get; set; }
         public User User { get; set; }
+        public ICollection<AssignmentApproval> AssignmentApprovals { get; set; } = new List<AssignmentApproval>();
     }
 }
 

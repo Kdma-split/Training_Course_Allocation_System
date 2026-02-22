@@ -162,3 +162,4 @@ C:\Users\ArkadipMukhopadhyay\desktop\training_allocation_system\backend\backend\
 C:\Users\ArkadipMukhopadhyay\desktop\training_allocation_system\backend\backend\obj\Debug\net10.0\backend.genruntimeconfig.cache
 C:\Users\ArkadipMukhopadhyay\desktop\training_allocation_system\backend\backend\obj\Debug\net10.0\ref\backend.dll
 C:\Users\ArkadipMukhopadhyay\Desktop\training_allocation_system\backend\backend\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+C:\Users\ArkadipMukhopadhyay\Desktop\training_allocation_system\backend\backend\bin\Debug\net10.0\BCrypt.Net-Next.dll

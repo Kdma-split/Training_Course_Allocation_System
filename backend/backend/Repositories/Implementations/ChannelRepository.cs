@@ -19,38 +19,6 @@ namespace backend.Repositories.Implementations
             return await _context.Channels.FindAsync(id);
         }
 
-        public async Task<Channel?> GetChannelByUserId(Guid channelId, Guid userId, string userType)
-        {
-            //return await _context.Channels.FindAsync(channelId, userId, userType);
-            if (userType == "admin")
-            {
-                return await _context.Channels.Include().Where(
-                    c => c.ChannelId == channelId,
-                    c => c.AdminId == userId
-                );
-            }
-            return await _context.Channels.Include().Where(
-                c => c.ChannelId == channelId,
-                c => c.CreatedById == userId
-            );
-        }
-
-
-        public async Task<Channel?> GetChannelsByUserId(Guid userId, string userType)
-        {
-            //return await _context.Channels.FindAsync(channelId, userId, userType);
-            if (userType == "admin")
-            {
-                return await _context.Channels.Include().Where(
-                    c => c.AdminId == userId
-                );
-            }
-            return await _context.Channels.Include().Where(
-                c => c.CreatedById == userId
-            );
-        }
-
-
         public async Task<IEnumerable<Channel>> GetAllChannelsAsync()
         {
             return await _context.Channels.ToListAsync();

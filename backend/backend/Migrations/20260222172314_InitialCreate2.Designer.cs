@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(TrainingCourseContext))]
-    partial class TrainingCourseContextModelSnapshot : ModelSnapshot
+    [Migration("20260222172314_InitialCreate2")]
+    partial class InitialCreate2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -469,7 +472,7 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.AssignmentApproval", b =>
                 {
                     b.HasOne("backend.Models.AssignmentChannelUser", "ChannelUser")
-                        .WithMany("AssignmentApprovals")
+                        .WithMany()
                         .HasForeignKey("ChannelUserAssignmentChannelUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -518,7 +521,7 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.ChannelApproval", b =>
                 {
                     b.HasOne("backend.Models.ChannelUser", "ChannelUser")
-                        .WithMany("ChannelApprovals")
+                        .WithMany()
                         .HasForeignKey("ChannelUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -603,7 +606,7 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.CourseApproval", b =>
                 {
                     b.HasOne("backend.Models.CourseChannelUser", "CourseChannelUser")
-                        .WithMany("CourseApprovals")
+                        .WithMany()
                         .HasForeignKey("CourseChannelUserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -633,11 +636,6 @@ namespace backend.Migrations
                     b.Navigation("ChannelAssignments");
                 });
 
-            modelBuilder.Entity("backend.Models.AssignmentChannelUser", b =>
-                {
-                    b.Navigation("AssignmentApprovals");
-                });
-
             modelBuilder.Entity("backend.Models.Channel", b =>
                 {
                     b.Navigation("ChannelAssignments");
@@ -652,21 +650,11 @@ namespace backend.Migrations
                     b.Navigation("AssignmentChannelUsers");
                 });
 
-            modelBuilder.Entity("backend.Models.ChannelUser", b =>
-                {
-                    b.Navigation("ChannelApprovals");
-                });
-
             modelBuilder.Entity("backend.Models.Course", b =>
                 {
                     b.Navigation("ChannelAssignments");
 
                     b.Navigation("ChannelCourses");
-                });
-
-            modelBuilder.Entity("backend.Models.CourseChannelUser", b =>
-                {
-                    b.Navigation("CourseApprovals");
                 });
 
             modelBuilder.Entity("backend.Models.Domain", b =>

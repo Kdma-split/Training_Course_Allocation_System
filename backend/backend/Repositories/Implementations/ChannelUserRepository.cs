@@ -58,5 +58,10 @@ namespace backend.Repositories.Implementations
         {
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<Channel?> GetChannelByIdAsync(Guid channelId)
+        {
+            return await _context.Channels.FindAsync(channelId);
+        }
     }
 }

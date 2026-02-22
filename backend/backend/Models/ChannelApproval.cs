@@ -1,10 +1,8 @@
-﻿using backend.Models;
-
-namespace backend.models
+﻿namespace backend.Models
 {
-    public class ChannelApprovals
+    public class ChannelApproval
     {
-        public Guid ChannelApprovalsId { get; set; }
+        public Guid ChannelApprovalId { get; set; }
         public Guid ChannelUserId { get; set; }
         public string ApprovalDescription { get; set; }
         public string Status { get; set; } = "pending"; // pending, approved, rejected

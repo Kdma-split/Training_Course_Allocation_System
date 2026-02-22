@@ -1,7 +1,7 @@
 ﻿namespace backend.Data
 {
-    using Microsoft.EntityFrameworkCore;
     using backend.Models;
+    using Microsoft.EntityFrameworkCore;
     public class TrainingCourseContext : DbContext
     {
         public TrainingCourseContext(DbContextOptions<TrainingCourseContext> options) : base(options)
@@ -16,6 +16,9 @@
         public DbSet<ChannelCourse> ChannelCourses { get; set; }
         public DbSet<AssignmentChannelUser> AssignmentChannelUsers { get; set; }
         public DbSet<ChannelAssignment> ChannelAssignments { get; set; }
+        public DbSet<ChannelApproval> ChannelApprovals { get; set; }
+        public DbSet<CourseApproval> CourseApprovals { get; set; }
+        public DbSet<AssignmentApproval> AssignmentApprovals { get; set; }
         public DbSet<Domain> Domains { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

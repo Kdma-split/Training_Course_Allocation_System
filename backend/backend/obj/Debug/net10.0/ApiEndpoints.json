@@ -1,105 +1,5 @@
 [
   {
-    "ContainingType": "backend.Controllers.AssignmentsController",
-    "Method": "CreateAssignment",
-    "RelativePath": "api/Assignments",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "dto",
-        "Type": "backend.Dto.CreateAssignmentDto",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "backend.Controllers.AssignmentsController",
-    "Method": "GetAssignment",
-    "RelativePath": "api/Assignments/{id}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "channelId",
-        "Type": "System.Guid",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "backend.Controllers.AssignmentsController",
-    "Method": "UpdateAssignment",
-    "RelativePath": "api/Assignments/{id}",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "dto",
-        "Type": "backend.Dto.UpdateAssignmentDto",
-        "IsRequired": true
-      },
-      {
-        "Name": "channelId",
-        "Type": "System.Guid",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "backend.Controllers.AssignmentsController",
-    "Method": "DeleteAssignment",
-    "RelativePath": "api/Assignments/{id}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "channelId",
-        "Type": "System.Guid",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "backend.Controllers.AssignmentsController",
-    "Method": "GetAssignmentsByChannel",
-    "RelativePath": "api/Assignments/channel/{channelId}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "channelId",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "backend.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
@@ -132,25 +32,188 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "backend.Controllers.CoursesController",
-    "Method": "CreateCourse",
-    "RelativePath": "api/Courses",
+    "ContainingType": "backend.Controllers.ChannelController",
+    "Method": "GetAllChannels",
+    "RelativePath": "api/Channel",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelController",
+    "Method": "CreateChannel",
+    "RelativePath": "api/Channel",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "backend.Dto.CreateCourseDto",
+        "Type": "backend.Dto.Channel.CreateChannelDto",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "backend.Controllers.CoursesController",
-    "Method": "GetCourse",
-    "RelativePath": "api/Courses/{id}",
+    "ContainingType": "backend.Controllers.ChannelController",
+    "Method": "GetChannel",
+    "RelativePath": "api/Channel/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelController",
+    "Method": "UpdateChannel",
+    "RelativePath": "api/Channel/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "backend.Dto.Channel.CreateChannelDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelController",
+    "Method": "DeleteChannel",
+    "RelativePath": "api/Channel/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelUserController",
+    "Method": "GetChannelMembers",
+    "RelativePath": "api/ChannelUser/channel/{channelId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelUserController",
+    "Method": "AddMember",
+    "RelativePath": "api/ChannelUser/channel/{channelId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "backend.Controllers.AddMemberDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelUserController",
+    "Method": "RemoveMember",
+    "RelativePath": "api/ChannelUser/channel/{channelId}/user/{memberId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "memberId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelUserController",
+    "Method": "UpdateMemberRole",
+    "RelativePath": "api/ChannelUser/channel/{channelId}/user/{memberId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "memberId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "backend.Controllers.UpdateMemberRoleDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelAssignmentsController",
+    "Method": "CreateAssignment",
+    "RelativePath": "api/SingleChannelAssignments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "backend.Dto.CreateAssignmentDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelAssignmentsController",
+    "Method": "GetAssignment",
+    "RelativePath": "api/SingleChannelAssignments/{id}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -169,9 +232,109 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "backend.Controllers.CoursesController",
+    "ContainingType": "backend.Controllers.SingleChannelAssignmentsController",
+    "Method": "UpdateAssignment",
+    "RelativePath": "api/SingleChannelAssignments/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "backend.Dto.UpdateAssignmentDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelAssignmentsController",
+    "Method": "DeleteAssignment",
+    "RelativePath": "api/SingleChannelAssignments/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelAssignmentsController",
+    "Method": "GetAssignmentsByChannel",
+    "RelativePath": "api/SingleChannelAssignments/channel/{channelId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelCoursesController",
+    "Method": "CreateCourse",
+    "RelativePath": "api/SingleChannelCourses",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "backend.Dto.CreateCourseDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelCoursesController",
+    "Method": "GetCourse",
+    "RelativePath": "api/SingleChannelCourses/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.SingleChannelCoursesController",
     "Method": "UpdateCourse",
-    "RelativePath": "api/Courses/{id}",
+    "RelativePath": "api/SingleChannelCourses/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -195,9 +358,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "backend.Controllers.CoursesController",
+    "ContainingType": "backend.Controllers.SingleChannelCoursesController",
     "Method": "DeleteCourse",
-    "RelativePath": "api/Courses/{id}",
+    "RelativePath": "api/SingleChannelCourses/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -216,9 +379,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "backend.Controllers.CoursesController",
+    "ContainingType": "backend.Controllers.SingleChannelCoursesController",
     "Method": "GetCoursesByChannel",
-    "RelativePath": "api/Courses/channel/{channelId}",
+    "RelativePath": "api/SingleChannelCourses/channel/{channelId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

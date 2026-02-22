@@ -41,7 +41,9 @@ builder.Services.AddScoped<IChannelUserRepository, ChannelUserRepository>();
 builder.Services.AddScoped<IChannelCourseRepository, ChannelCourseRepository>();
 builder.Services.AddScoped<IChannelAssignmentRepository, ChannelAssignmentRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPermissionService, SingleChannelCoursePermissionService>();
+builder.Services.AddScoped<ISingleChannelCoursePermissionService, SingleChannelCoursePermissionService>();
+builder.Services.AddScoped<IChannelPermissionService, ChannelPermissionService>();
+builder.Services.AddScoped<IChannelUserPermissionService, ChannelUserPermissionService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;

@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(TrainingCourseContext))]
-    [Migration("20260221151701_InitialCreate")]
+    [Migration("20260222171255_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -34,7 +34,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("AssignedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Domain")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -89,7 +89,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Channel", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("ChannelId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -113,7 +113,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.HasKey("ChannelId");
 
                     b.HasIndex("AdminId");
 
@@ -346,8 +346,24 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("assignmentsCompleted")
+                        .HasColumnType("int");
+
+                    b.Property<int>("assignmentsContributed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("coursesCompleted")
+                        .HasColumnType("int");
+
+                    b.Property<int>("coursesContributed")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

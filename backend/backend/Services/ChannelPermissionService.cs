@@ -14,23 +14,27 @@ namespace backend.Services
 
     public class ChannelPermissionService : IChannelPermissionService
     {
-        private readonly IChannelRepo _channelRepository;
+        private readonly IChannelUserRepository _channelUserRepository;
 
-        public ChannelPermissionService(IChannelUserRepository channelRepository)
+        public ChannelPermissionService(IChannelUserRepository channelUserRepository)
         {
-            _channelRepository = channelRepository;
-            //_channelCourseRepository = ChannelCourseRepository;
+            _channelUserRepository = channelUserRepository;
         }
 
-        public async Task<Channel?> GetUserRoleInChannelAsync(Guid channelId, Guid userId)
+        public async Task<Models.Channel?> GetUserRoleInChannelAsync(Guid channelId, Guid userId)
         {
-            var channel = await _channelRepository.GetChannelByUserIdAsync(channelId, userId, "admin");
+            var channelUser = await _channelUserRepository.GetChannelUserAsync(channelId, userId);
+            if (channelUser == null)
+                return null;
+            
+            var channel = await _channelUserRepository.GetChannelByIdAsync(channelId);
             return channel;
         }
 
         public async Task<bool> CanEditChannelInfoAsync(Guid channelId, Guid userId)
         {
-            return GetUserRoleInChannelAsync(channelId, userId) != null;
+            var channelUser = await _channelUserRepository.GetChannelUserAsync(channelId, userId);
+            return channelUser != null;
         }
     }
 }

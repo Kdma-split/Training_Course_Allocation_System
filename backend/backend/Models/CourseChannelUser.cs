@@ -15,6 +15,7 @@
 
         public ChannelCourse ChannelCourse { get; set; }
         public User User { get; set; }
+        public ICollection<CourseApproval> CourseApprovals { get; set; } = new List<CourseApproval>();
 
     }
 }

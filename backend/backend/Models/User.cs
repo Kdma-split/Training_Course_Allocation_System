@@ -10,14 +10,14 @@
         public string Role { get; set; } = "User";
         public int Age { get; set; }
 
-        // THESE COLUMNS CAN BE USED TO KEEP TRACK OF A PERSON'S INVOLVEMENT IN THE PLATFORM...
+        // // THESE COLUMNS CAN BE USED TO KEEP TRACK OF A PERSON'S INVOLVEMENT IN THE PLATFORM...
         public int coursesContributed { get; set; }
         public int assignmentsContributed { get; set; }
         public int coursesCompleted { get; set; }
         public int assignmentsCompleted { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation
         public ICollection<Channel> CreatedChannels { get; set; } = new List<Channel>();

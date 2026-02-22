@@ -1,29 +1,29 @@
-﻿using backend.Dto;
-using backend.Models;
-using backend.Repositories.Interfaces;
-using backend.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-
 namespace backend.Controllers
 {
+    using backend.Models;
+    using backend.Repositories.Interfaces;
+    using backend.Services;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Security.Claims;
 
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ChannelsController : ControllerBase
+    public class ChannelController : ControllerBase
     {
         private readonly IChannelRepository _channelRepository;
+        private readonly IChannelUserRepository _channelUserRepository;
         private readonly IChannelPermissionService _channelPermissionService;
 
-        public ChannelsController(
+        public ChannelController(
             IChannelRepository channelRepository,
-            IChannelPermissionService ChannelPermissionService
-        )
+            IChannelUserRepository channelUserRepository,
+            IChannelPermissionService channelPermissionService)
         {
-            channelRepository = channelRepository;
-            _channelPermissionService = ChannelPermissionService;
+            _channelRepository = channelRepository;
+            _channelUserRepository = channelUserRepository;
+            _channelPermissionService = channelPermissionService;
         }
 
         private Guid GetUserId()
@@ -32,118 +32,100 @@ namespace backend.Controllers
             return Guid.Parse(userIdClaim!);
         }
 
-        [HttpGet("channel/{channelId}")]
-        public async Task<IActionResult> GetChannelById(Guid channelId)
+        [HttpGet]
+        public async Task<IActionResult> GetAllChannels()
         {
-            var userId = GetUserId();
-
-            if (!await _channelPermissionService.CanCreateAsync(channelId, userId))
-                return Forbid();
-
-            var channelCourses = await _channelCourseRepository.GetCoursesByChannelAsync(channelId);
-            var courses = channelCourses.Select(cc => new CourseResponseDto
+            var channels = await _channelRepository.GetAllChannelsAsync();
+            var response = channels.Select(c => new Dto.Channel.Channel
             {
-                Id = cc.Course.Id,
-                Title = cc.Course.Title,
-                Description = cc.Course.Description,
-                DomainId = cc.Course.DomainId,
-                NumberAttended = cc.Course.NumberAttended,
-                CreatedAt = cc.Course.CreatedAt
+                Name = c.Name,
+                Description = c.Description,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt
             });
-
-            return Ok(courses);
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCourse(Guid id, [FromQuery] Guid channelId)
+        public async Task<IActionResult> GetChannel(Guid id)
         {
-            var userId = GetUserId();
-
-            if (!await _permissionService.CanReadAsync(channelId, userId))
-                return Forbid();
-
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
+            var channel = await _channelRepository.GetChannelByIdAsync(id);
+            if (channel == null)
                 return NotFound();
 
-            var response = new CourseResponseDto
+            var response = new Dto.Channel.Channel
             {
-                Id = course.Id,
-                Title = course.Title,
-                Description = course.Description,
-                DomainId = course.DomainId,
-                NumberAttended = course.NumberAttended,
-                CreatedAt = course.CreatedAt
+                Name = channel.Name,
+                Description = channel.Description,
+                CreatedAt = channel.CreatedAt,
+                UpdatedAt = channel.UpdatedAt
             };
-
             return Ok(response);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto)
+        public async Task<IActionResult> CreateChannel([FromBody] Dto.Channel.CreateChannelDto dto)
         {
             var userId = GetUserId();
 
-            if (!await _permissionService.CanCRUDCourseAsync(dto.ChannelId, userId))
-                return Forbid();
-
-            var course = new Course
+            var channel = new Channel
             {
-                Title = dto.Title,
+                Name = dto.Name,
                 Description = dto.Description,
-                DomainId = dto.DomainId,
-                NumberAttended = 0
+                CreatedById = userId,
+                AdminId = userId
             };
 
-            var createdCourse = await _courseRepository.CreateCourseAsync(course);
+            var createdChannel = await _channelRepository.CreateChannelAsync(channel);
 
-            var channelCourse = new ChannelCourse
+            var channelUser = new ChannelUser
             {
-                ChannelId = dto.ChannelId,
-                CourseId = createdCourse.Id,
-                IsActive = true
+                ChannelId = createdChannel.ChannelId,
+                UserId = userId,
+                Role = Role.Author
             };
+            await _channelUserRepository.AddUserToChannelAsync(channelUser);
 
-            await _channelCourseRepository.AddCourseToChannelAsync(channelCourse);
-
-            return CreatedAtAction(nameof(GetCourse), new { id = createdCourse.Id, channelId = dto.ChannelId }, createdCourse);
+            return CreatedAtAction(nameof(GetChannel), new { id = createdChannel.ChannelId }, createdChannel);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto dto, [FromQuery] Guid channelId)
+        public async Task<IActionResult> UpdateChannel(Guid id, [FromBody] Dto.Channel.CreateChannelDto dto)
         {
             var userId = GetUserId();
 
-            if (!await _permissionService.CanCRUDCourseAsync(channelId, userId))
+            if (!await _channelPermissionService.CanEditChannelInfoAsync(id, userId))
                 return Forbid();
 
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
+            var channel = await _channelRepository.GetChannelByIdAsync(id);
+            if (channel == null)
                 return NotFound();
 
-            course.Title = dto.Title;
-            course.Description = dto.Description;
-            course.DomainId = dto.DomainId;
-            course.UpdatedAt = DateTime.UtcNow;
+            channel.Name = dto.Name;
+            channel.Description = dto.Description;
+            channel.UpdatedAt = DateTime.UtcNow;
 
-            var updatedCourse = await _courseRepository.UpdateCourseAsync(course);
+            var updatedChannel = await _channelRepository.UpdateChannelAsync(channel);
 
-            return Ok(updatedCourse);
+            return Ok(updatedChannel);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCourse(Guid id, [FromQuery] Guid channelId)
+        public async Task<IActionResult> DeleteChannel(Guid id)
         {
             var userId = GetUserId();
 
-            if (!await _permissionService.CanDeleteCourseAsync(channelId, userId))
+            if (!await _channelPermissionService.CanEditChannelInfoAsync(id, userId))
                 return Forbid();
 
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
+            var channel = await _channelRepository.GetChannelByIdAsync(id);
+            if (channel == null)
                 return NotFound();
 
-            await _courseRepository.DeleteCourseAsync(id);
+            if (channel.CreatedById != userId)
+                return Forbid();
+
+            await _channelRepository.DeleteChannelAsync(id);
 
             return NoContent();
         }

@@ -10,5 +10,6 @@ namespace backend.Repositories.Interfaces
         Task<ChannelUser> UpdateUserRoleAsync(ChannelUser channelUser);
         Task<bool> RemoveUserFromChannelAsync(Guid channelId, Guid userId);
         Task<bool> SaveChangesAsync();
+        Task<Channel?> GetChannelByIdAsync(Guid channelId);
     }
 }
