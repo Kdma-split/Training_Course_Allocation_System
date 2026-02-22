@@ -2,6 +2,7 @@
 {
     public class ChannelUser
     {
+        public Guid ChannelUserId { get; set; } = Guid.NewGuid();
         public Guid ChannelId { get; set; }
         public Channel Channel { get; set; }
 

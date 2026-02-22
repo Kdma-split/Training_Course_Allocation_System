@@ -7,6 +7,7 @@
         public string Name { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
+        public string Role { get; set; } = "User";
         public int Age { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -15,7 +16,6 @@
         // Navigation
         public ICollection<Channel> CreatedChannels { get; set; } = new List<Channel>();
         public ICollection<Channel> AdminChannels { get; set; } = new List<Channel>();
-
         public ICollection<ChannelUser> ChannelUsers { get; set; } = new List<ChannelUser>();
         public ICollection<CourseChannelUser> CourseChannelUsers { get; set; } = new List<CourseChannelUser>();
         public ICollection<AssignmentChannelUser> AssignmentChannelUsers { get; set; } = new List<AssignmentChannelUser>();

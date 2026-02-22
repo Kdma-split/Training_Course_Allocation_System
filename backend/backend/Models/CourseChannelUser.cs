@@ -1,6 +1,6 @@
 ﻿namespace backend.Models
 {
-    class CourseChannelUser
+    public class CourseChannelUser
     {
         public int CourseChannelUserId { get; set; }
         public Guid UserId { get; set; }
