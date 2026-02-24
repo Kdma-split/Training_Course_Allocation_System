@@ -3,14 +3,21 @@ using backend.Repositories.Implementations;
 using backend.Repositories.Interfaces;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
 builder.Services.AddDbContext<TrainingCourseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -40,6 +47,7 @@ builder.Services.AddScoped<IChannelRepository, ChannelRepository>();
 builder.Services.AddScoped<IChannelUserRepository, ChannelUserRepository>();
 builder.Services.AddScoped<IChannelCourseRepository, ChannelCourseRepository>();
 builder.Services.AddScoped<IChannelAssignmentRepository, ChannelAssignmentRepository>();
+builder.Services.AddScoped<IChannelApprovalsRepository, ChannelApprovalRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISingleChannelCoursePermissionService, SingleChannelCoursePermissionService>();
 builder.Services.AddScoped<IChannelPermissionService, ChannelPermissionService>();

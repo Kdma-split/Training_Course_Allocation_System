@@ -17,9 +17,9 @@ namespace backend.Dto.Auth
         [StringLength(255)]
         public string Password { get; set; }
 
-        [Required]
+[Required]
         [StringLength(50)]
-        public string Role { get; set; }
+        public string? Role { get; set; }
 
         [Range(0, 150)]
         public int Age { get; set; }  // Changed from 'age' to PascalCase

@@ -5,8 +5,6 @@ namespace backend.Controllers
     using backend.Repositories.Interfaces;
     using backend.Services;
     using Microsoft.AspNetCore.Mvc;
-    using System.Security.Cryptography;
-    using System.Text;
 
     [ApiController]
     [Route("api/[controller]")]
@@ -24,16 +22,17 @@ namespace backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto request)
         {
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { message = "Email and Password are required" });
+
             if (await _userRepository.IsUserExistsAsync(request.Email))
                 return BadRequest(new { message = "User already exists" });
-
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             var user = new User
             {
                 Name = request.Name,
                 Email = request.Email,
-                PasswordHash = Convert.ToBase64String(passwordHash),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Age = request.Age,
                 Role = request.Role ?? "User"
             };
@@ -48,35 +47,19 @@ namespace backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { message = "Email and Password are required" });
+
             var user = await _userRepository.GetUserByEmailAsync(request.Email);
             if (user == null)
                 return BadRequest(new { message = "Invalid credentials" });
 
-            if (!VerifyPasswordHash(request.Password, user.PasswordHash))
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return BadRequest(new { message = "Invalid credentials" });
 
             var token = _authService.GenerateToken(user);
 
             return Ok(new { token, user });
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
-        }
-
-        private bool VerifyPasswordHash(string password, string storedHash)
-        {
-            var hashBytes = Convert.FromBase64String(storedHash);
-            using (var hmac = new HMACSHA512())
-            {
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return computedHash.SequenceEqual(hashBytes);
-            }
         }
     }
 }

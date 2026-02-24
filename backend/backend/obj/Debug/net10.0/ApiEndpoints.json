@@ -9,7 +9,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "backend.Dto.Auth.LoginUser",
+        "Type": "backend.Dto.Auth.LoginDto",
         "IsRequired": true
       }
     ],
@@ -25,7 +25,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "backend.Dto.Auth.RegisterUser",
+        "Type": "backend.Dto.Auth.RegisterDto",
         "IsRequired": true
       }
     ],

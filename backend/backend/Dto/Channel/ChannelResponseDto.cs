@@ -1,19 +1,18 @@
-﻿using backend.Models;
-
 namespace backend.Dto.Channel
 {
     public class Channel
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string CreatedBy { get; set; }
-        public string Admin { get; set; }
+        public Guid ChannelId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string CreatedBy { get; set; } = string.Empty;
+        public string Admin { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public List<ChannelUser> ChannelUsers { get; set; }
-        public List<ChannelCourse> ChannelCourses { get; set; }
-        public List<ChannelAssignment> ChannelAssignments { get; set; }
+        public List<string> ChannelUsers { get; set; } = new List<string>();
+        public List<string> ChannelCourses { get; set; } = new List<string>();
+        public List<string> ChannelAssignments { get; set; } = new List<string>();
     }
 }

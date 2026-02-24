@@ -19,7 +19,8 @@ namespace backend.Controllers
         public ChannelUserController(
             IChannelUserRepository channelUserRepository,
             IChannelUserPermissionService channelUserPermissionService,
-            IUserRepository userRepository)
+            IUserRepository userRepository
+        )
         {
             _channelUserRepository = channelUserRepository;
             _channelUserPermissionService = channelUserPermissionService;
@@ -51,7 +52,7 @@ namespace backend.Controllers
                 {
                     members.Add(new
                     {
-                        UserId = user.Id,
+                        UserId = user.UserId,
                         Name = user.Name,
                         Email = user.Email,
                         Role = cu.Role
@@ -70,13 +71,19 @@ namespace backend.Controllers
             if (!await _channelUserPermissionService.CanAddMembersAsync(channelId, userId))
                 return Forbid();
 
+//  2 WAYS TO ADD NEW MEMBER:
+            // 1)  THE USER MUST BELONG TO THE LIST OF USERS WHO ALREADY USE THE PLATFORM. [Check required from the "Users" table if the user exists in the table? then can proceed further...]
+            // 2)  NOT NECCESSARY FOR THTE USER TO BE INVOLVED IN THE PLATFORM FROM BEFORE... [No database checks for the user is required...]
+
+        // APPLYING RULE 1 ---- MORE SECURITY OVER RULE 2...
+
             var existingUser = await _userRepository.GetUserByIdAsync(dto.UserId);
             if (existingUser == null)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = "User not found" });    // DOES NOT USE THE PLATFORM...
 
             var existingChannelUser = await _channelUserRepository.GetChannelUserAsync(channelId, dto.UserId);
             if (existingChannelUser != null)
-                return BadRequest(new { message = "User is already a member of this channel" });
+                return BadRequest(new { message = "User is already a member of this channel" });    // ALREADY A CHANNEL MEMBER  ----  USER EXISTS IN THE ChannelUsers TABLE...
 
             var channelUser = new ChannelUser
             {
