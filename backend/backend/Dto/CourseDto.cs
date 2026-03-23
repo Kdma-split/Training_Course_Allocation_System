@@ -4,7 +4,7 @@ namespace backend.Dto
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public int DomainId { get; set; }
+        public Guid DomainId { get; set; }
         public Guid ChannelId { get; set; }
     }
 
@@ -13,7 +13,7 @@ namespace backend.Dto
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public int DomainId { get; set; }
+        public Guid DomainId { get; set; }
     }
 
     public class CourseResponseDto
@@ -21,8 +21,9 @@ namespace backend.Dto
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public int DomainId { get; set; }
+        public Guid DomainId { get; set; }
         public int NumberAttended { get; set; }
+        public Guid CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

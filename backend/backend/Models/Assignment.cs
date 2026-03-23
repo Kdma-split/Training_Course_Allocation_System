@@ -5,6 +5,7 @@
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Domain { get; set; }
         public int NumberAttended { get; set; }     // helps to infer props like the most popular course assignment on the entire platform -- not on a channel (a course assignment can be present on many channels)
+        public string domainId { get; set; }    
         public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<ChannelAssignment> ChannelAssignments { get; set; } = new List<ChannelAssignment>();

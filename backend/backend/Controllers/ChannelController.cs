@@ -1,10 +1,12 @@
 namespace backend.Controllers
 {
+    using backend.Data;
     using backend.Models;
+    using backend.Repositories.Implementations;
     using backend.Repositories.Interfaces;
-    using backend.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
     using System.Security.Claims;
 
     [ApiController]
@@ -16,30 +18,48 @@ namespace backend.Controllers
         private readonly IChannelUserRepository _channelUserRepository;
         private readonly IChannelCourseRepository _channelCourseRepository;
         private readonly IChannelAssignmentRepository _channelAssignmentRepository;
+        private readonly IChannelUserRoleRepository _channelUserRoleRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IChannelPermissionService _channelPermissionService;
+        private readonly TrainingCourseContext _context;
 
         public ChannelController(
             IChannelRepository channelRepository,
             IChannelUserRepository channelUserRepository,
             IChannelCourseRepository channelCourseRepository,
             IChannelAssignmentRepository channelAssignmentRepository,
+            IChannelUserRoleRepository channelUserRoleRepository,
             IUserRepository userRepository,
-            IChannelPermissionService channelPermissionService
+            TrainingCourseContext context
         )
         {
             _channelRepository = channelRepository;
             _channelUserRepository = channelUserRepository;
             _channelCourseRepository = channelCourseRepository;
             _channelAssignmentRepository = channelAssignmentRepository;
+            _channelUserRoleRepository = channelUserRoleRepository;
             _userRepository = userRepository;
-            _channelPermissionService = channelPermissionService;
+            _context = context;
         }
 
         private Guid GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return Guid.Parse(userIdClaim!);
+        }
+
+        private async Task<bool> IsChannelAdminAsync(Guid channelId, Guid userId)
+        {
+            var roles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, userId);
+            return roles != null && roles.Contains("ChannelAdmin");
+        }
+
+        private async Task<bool> CanDeleteChannelAsync(Guid channelId, Guid userId)
+        {
+            var userRole = await _userRepository.GetUserRoleAsync(userId);
+            if (userRole == "Admin")
+                return true;
+
+            return await IsChannelAdminAsync(channelId, userId);
         }
 
         [HttpGet]
@@ -101,9 +121,12 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
             
-    // CHECK IF THE USER EXISTS IN THE USER TABLE  ----  INVOLVED IN THE PLATFORM...
-            if (await _userRepository.GetUserByIdAsync(userId) != null)
+    // CHECK IF THE USER EXISTS IN THE USER TABLE  ----  CAN'T CREATE A CHANNEL --- MUST BE A NORMAL USER OF THE PLATFORM...
+            if (await _userRepository.GetUserByIdAsync(userId) == null)
                 return Forbid();
+
+            if (await _channelUserRepository.IsChannelExists(dto.Name))
+                return BadRequest("Channel already exists!");
 
             var channel = new Channel
             {
@@ -118,10 +141,24 @@ namespace backend.Controllers
             var channelUser = new ChannelUser
             {
                 ChannelId = createdChannel.ChannelId,
-                UserId = userId,
-                Role = Role.Admin
+                UserId = userId
             };
             await _channelUserRepository.AddUserToChannelAsync(channelUser);
+
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "ChannelAdmin");
+            if (adminRole != null)
+            {
+                var channelUserRole = new ChannelUserRoles
+                {
+                    Id = Guid.NewGuid(),
+                    ChannelUserId = channelUser.ChannelUserId,
+                    RoleId = adminRole.Id,
+                    AssignedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _context.ChannelUserRoles.AddAsync(channelUserRole);
+                await _context.SaveChangesAsync();
+            }
 
             var response = new Dto.Channel.Channel
             {
@@ -145,7 +182,7 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
 
-            if (!await _channelPermissionService.CanEditChannelInfoAsync(id, userId))
+            if (!await IsChannelAdminAsync(id, userId))
                 return Forbid();
 
             var channel = await _channelRepository.GetChannelByIdAsync(id);
@@ -182,17 +219,16 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
 
-            if (await _channelPermissionService.CanEditChannelInfoAsync(id, userId))
+            if (!await CanDeleteChannelAsync(id, userId))
                 return Forbid();
 
             var channel = await _channelRepository.GetChannelByIdAsync(id);
             if (channel == null)
                 return NotFound();
 
-            if (channel.CreatedById != userId)
-                return Forbid();
-
-            await _channelRepository.DeleteChannelAsync(id);
+            var success = await _channelRepository.SoftDeleteChannelAsync(id);
+            if (!success)
+                return BadRequest("Failed to delete channel");
 
             return NoContent();
         }

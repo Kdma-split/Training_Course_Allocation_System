@@ -8,6 +8,7 @@
         public Guid CourseId { get; set; }
 
         public bool IsActive { get; set; } = true;
+        public string Status { get; set; } = "pending"; // pending, completed
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

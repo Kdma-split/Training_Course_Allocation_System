@@ -63,5 +63,16 @@ namespace backend.Repositories.Implementations
         {
             return await _context.Channels.FindAsync(channelId);
         }
+
+        public async Task<bool> IsChannelExists(string name)
+        {
+            return await _context.Channels.AnyAsync(c => c.Name == name);
+        }
+
+        public async Task<bool> IsChannelExists(Guid id)
+        {
+            var channel = await _context.Channels.FindAsync(id);
+            return channel != null;
+        }
     }
 }

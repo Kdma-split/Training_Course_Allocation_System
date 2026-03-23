@@ -20,6 +20,8 @@
         public DbSet<CourseApproval> CourseApprovals { get; set; }
         public DbSet<AssignmentApproval> AssignmentApprovals { get; set; }
         public DbSet<Domain> Domains { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<ChannelUserRoles> ChannelUserRoles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,17 +1,15 @@
-﻿using Azure;
+using Azure;
+using backend.Data;
 using backend.Dto.Channel;
 using backend.Models;
 using backend.Repositories.Implementations;
 using backend.Repositories.Interfaces;
-using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-
-// NO NEED FOR CHECKING THE ECXISTENCE OF USERS IN OTHER TABLE, AS THE USER CANNOT ACCESS THE FRONTEND THIS FAR IF HE'S NOT A USER OF THIS APPLICATION, THUS, CAN BE SAID THAT THIS WAY OF ADDING / REMOVING A MEMBER FROM THE CHANNEL IS STRICTLY RESTRICTED TO THE WEB APPLICATION USERS...
-
 
 namespace backend.Controllers
 {
@@ -23,19 +21,22 @@ namespace backend.Controllers
         IUserRepository _users;
         IChannelApprovalsRepository _channelApprovals;
         IChannelUserRepository _channelUsers;
-        IChannelPermissionService _channelPermissionService;
+        IChannelUserRoleRepository _channelUserRoleRepository;
+        private readonly TrainingCourseContext _context;
 
         public ChannelsApprovalController(
             IChannelApprovalsRepository channelApprovals,
             IUserRepository users,
             IChannelUserRepository channelUsers,
-            IChannelPermissionService permissionService
+            IChannelUserRoleRepository channelUserRoleRepository,
+            TrainingCourseContext context
         )
         {
             _channelApprovals = channelApprovals;
             _users = users;
             _channelUsers = channelUsers;
-            _channelPermissionService = permissionService;
+            _channelUserRoleRepository = channelUserRoleRepository;
+            _context = context;
         }
 
         private Guid GetUserId()
@@ -49,7 +50,8 @@ namespace backend.Controllers
         {
             var currentUserId = GetUserId();
 
-            if (!await _channelPermissionService.CanEditApprovalAsync(channelId, currentUserId))
+            var userRoles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, currentUserId);
+            if (userRoles == null || !userRoles.Contains("ChannelAdmin"))
                 return Forbid();
 
             var approvals = await _channelApprovals.GetApprovalsByChannelIdUserId(channelId, userId);
@@ -57,13 +59,17 @@ namespace backend.Controllers
             if (approvals == null)
                 return NotFound(new { message = "No approvals found" });
 
+            var approvalDesc = !string.IsNullOrEmpty(approvals.ApprovalDescription)
+                ? System.Text.Json.JsonSerializer.Deserialize<ChannelApprovalUserDto>(approvals.ApprovalDescription)
+                : null;
+
             var response = new ResponseChannelApprovalDto
             {
                 ChannelApprovalId = approvals.ChannelApprovalId,
                 ChannelUserId = approvals.ChannelUserId,
-                ApprovalDescription = approvals.ApprovalDescription,
+                ApprovalDescription = approvalDesc,
                 Status = approvals.Status,
-                isActived = approvals.isActived,
+                isActived = approvals.IsActive,
                 CreatedAt = approvals.CreatedAt,
                 UpdatedAt = approvals.UpdatedAt
             };
@@ -76,20 +82,17 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
 
-            // ADMIN CANNOT CREATE ANY APPROVAL, HE CAN DIRECTLY ADD MEMBERS...
-            var userRole = await _channelPermissionService.GetUserRoleInChannelAsync(channelId, userId);
-            if (userRole == Role.Admin)
+            var userRoles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, userId);
+            if (userRoles != null && userRoles.Contains("ChannelAdmin"))
                 return Forbid();
 
-            ChannelApprovalDetails approvalDetails = new()
+            ChannelApprovalUserDto approvalDetails = new()
             {
                 Name = dto.ApprovalUserName,
                 Email = dto.ApprovalUserEmail,
                 Age = dto.ApprovalUserAge,
                 Role = dto.ApprovalUserRole
             };
-
-            // HERE, WE ARE ASSUMING THAT THE USER TO BE APPROVED TO ALLOW TO JOIN THE CHANNEL HAS ALREADY JOINED THE CHANNEL, OTHERWISE AUTOMATIC ADDING THE USER TO THE CHANNEL WOULD ADD ADDITIONAL OVERHEAD OF ASSIGNING AN EXTRA PASSWORD AND NAME TO THE USER BEING AOOROVED AND PROVIDING PROVISION TO ALLOW THE USERS TO CHANGE THEIR CREDENTIALS LATER... EXTRA DEVELOPMENT OVERHEAD...
 
             var user = await _users.GetUserByEmailAsync(approvalDetails.Email);
             if (user != null)
@@ -102,13 +105,17 @@ namespace backend.Controllers
 
             var response = await _channelApprovals.CreateApproval(channelId, userId, approval);
 
+            var responseDesc = !string.IsNullOrEmpty(response.ApprovalDescription)
+                ? System.Text.Json.JsonSerializer.Deserialize<ChannelApprovalUserDto>(response.ApprovalDescription)
+                : null;
+
             var responseDto = new ResponseChannelApprovalDto
             {
                 ChannelApprovalId = response.ChannelApprovalId,
                 ChannelUserId = response.ChannelUserId,
-                ApprovalDescription = response.ApprovalDescription,
+                ApprovalDescription = responseDesc,
                 Status = response.Status,
-                isActived = response.isActived,
+                isActived = response.IsActive,
                 CreatedAt = response.CreatedAt,
                 UpdatedAt = response.UpdatedAt
             };
@@ -116,14 +123,13 @@ namespace backend.Controllers
             return CreatedAtAction(nameof(ListApprovalsById), new { channelId, userId }, responseDto);
         }
 
-        //[HttpPost("/ResolveApproval/{id}")]
-        //public async IActionResult<bool> ResolveApprovals(Guid id, [FromBody] ChannelApprovalDto dto)
-        [HttpGet("/Resolve/{channelId}/{channelApprovalId}")]
-        public async Task<IActionResult> ResolveApprovals(Guid channelId, Guid channelApprovalId)
+        [HttpGet("/Accept/{channelId}/{channelApprovalId}")]
+        public async Task<IActionResult> AcceptApprovals(Guid channelId, Guid channelApprovalId)
         {
             var userId = GetUserId();
 
-            if (!await _channelPermissionService.CanEditApprovalAsync(channelId, userId))
+            var userRoles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, userId);
+            if (userRoles == null || !userRoles.Contains("ChannelAdmin"))
                 return Forbid();
 
             var channelApprovalDetails = await _channelApprovals.GetChannelApprovalById(channelApprovalId);
@@ -131,19 +137,7 @@ namespace backend.Controllers
             if (channelApprovalDetails == null)
                 return NotFound(new { message = "Approval not found" });
 
-            //var user = await _users.GetUserByEmailAsync(dto.ApprovalUserEmail);
-            //if (user != null)
-            //{     
-            //    //return Forbid();
-
-            //    var channelUser = _channelUsers.GetChannelUserAsync(channelId, user.UserId);
-            //    if (channelUser != null)
-            //    return Forbid();
-            //}
-
-            // HERE, WE ARE ASSUMING THAT THE USER TO BE APPROVED TO ALLOW TO JOIN THE CHANNEL HAS ALREADY JOINED THE CHANNEL, OTHERWISE AUTOMATIC ADDING THE USER TO THE CHANNEL WOULD ADD ADDITIONAL OVERHEAD OF ASSIGNING AN EXTRA PASSWORD AND NAME TO THE USER BEING AOOROVED AND PROVIDING PROVISION TO ALLOW THE USERS TO CHANGE THEIR CREDENTIALS LATER... EXTRA DEVELOPMENT OVERHEAD...
-
-            var approvalDesc = System.Text.Json.JsonSerializer.Deserialize<ChannelApprovalDetails>(channelApprovalDetails.ApprovalDescription);
+            var approvalDesc = System.Text.Json.JsonSerializer.Deserialize<ChannelApprovalUserDto>(channelApprovalDetails.ApprovalDescription);
             if (approvalDesc == null)
                 return BadRequest(new { message = "Invalid approval details" });
 
@@ -158,11 +152,25 @@ namespace backend.Controllers
             var channelUserCreate = new ChannelUser
             {
                 ChannelId = channelId,
-                UserId = user.UserId,
-                Role = approvalDesc.Role
+                UserId = user.UserId
             };
 
             await _channelUsers.AddUserToChannelAsync(channelUserCreate);
+
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == approvalDesc.Role);
+            if (role != null)
+            {
+                var channelUserRole = new ChannelUserRoles
+                {
+                    Id = Guid.NewGuid(),
+                    ChannelUserId = channelUserCreate.ChannelUserId,
+                    RoleId = role.Id,
+                    AssignedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _context.ChannelUserRoles.AddAsync(channelUserRole);
+                await _context.SaveChangesAsync();
+            }
 
             await _channelApprovals.UpdateChannelApprovalStatus(channelApprovalId, "approve");
 
@@ -174,7 +182,8 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
 
-            if (!await _channelPermissionService.CanEditApprovalAsync(channelId, userId))
+            var userRoles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, userId);
+            if (userRoles == null || !userRoles.Contains("ChannelAdmin"))
                 return Forbid();
 
             var channelApprovalDetails = await _channelApprovals.GetChannelApprovalById(channelApprovalId);

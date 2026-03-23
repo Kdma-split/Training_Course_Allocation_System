@@ -4,6 +4,7 @@ namespace backend.Repositories.Interfaces
 {
     public interface IUserRepository
     {
+        Task<string?> GetUserRole(Guid id);
         Task<User?> GetUserByIdAsync(Guid id);
         Task<User?> GetUserByEmailAsync(string email);
         Task<User?> GetUserByRoleAsync(string role);
@@ -13,5 +14,6 @@ namespace backend.Repositories.Interfaces
         Task<bool> DeleteUserAsync(Guid id);
         Task<bool> IsUserExistsAsync(string email);
         Task<bool> SaveChangesAsync();
+        Task<string?> GetUserRoleAsync(Guid userId);
     }
 }

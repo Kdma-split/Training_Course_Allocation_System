@@ -3,7 +3,7 @@ using backend.Repositories.Implementations;
 using backend.Repositories.Interfaces;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.Json;
+//using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -48,10 +48,9 @@ builder.Services.AddScoped<IChannelUserRepository, ChannelUserRepository>();
 builder.Services.AddScoped<IChannelCourseRepository, ChannelCourseRepository>();
 builder.Services.AddScoped<IChannelAssignmentRepository, ChannelAssignmentRepository>();
 builder.Services.AddScoped<IChannelApprovalsRepository, ChannelApprovalRepository>();
+builder.Services.AddScoped<IChannelUserRoleRepository, ChannelUserRoleRepository>();
+builder.Services.AddScoped<ICourseApprovalRepository, CourseApprovalRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ISingleChannelCoursePermissionService, SingleChannelCoursePermissionService>();
-builder.Services.AddScoped<IChannelPermissionService, ChannelPermissionService>();
-builder.Services.AddScoped<IChannelUserPermissionService, ChannelUserPermissionService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
@@ -90,6 +89,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<TrainingCourseContext>();
+    await DbInitializer.InitializeAsync(context);
+}
 
 if (app.Environment.IsDevelopment())
 {

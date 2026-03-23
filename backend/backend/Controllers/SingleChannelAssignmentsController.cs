@@ -1,7 +1,6 @@
 using backend.Dto;
 using backend.Models;
 using backend.Repositories.Interfaces;
-using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -15,16 +14,16 @@ namespace backend.Controllers
     {
         private readonly IAssignmentRepository _assignmentRepository;
         private readonly IChannelAssignmentRepository _channelAssignmentRepository;
-        private readonly ISingleChannelCoursePermissionService _permissionService;
+        private readonly IChannelUserRoleRepository _channelUserRoleRepository;
 
         public SingleChannelAssignmentsController(
             IAssignmentRepository assignmentRepository,
             IChannelAssignmentRepository channelAssignmentRepository,
-            ISingleChannelCoursePermissionService permissionService)
+            IChannelUserRoleRepository channelUserRoleRepository)
         {
             _assignmentRepository = assignmentRepository;
             _channelAssignmentRepository = channelAssignmentRepository;
-            _permissionService = permissionService;
+            _channelUserRoleRepository = channelUserRoleRepository;
         }
 
         private Guid GetUserId()
@@ -33,12 +32,25 @@ namespace backend.Controllers
             return Guid.Parse(userIdClaim!);
         }
 
+        private async Task<bool> IsChannelMemberAsync(Guid channelId, Guid userId)
+        {
+            var roles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, userId);
+            return roles != null;
+        }
+
+        private async Task<bool> CanManageCourseAsync(Guid channelId, Guid userId)
+        {
+            var roles = await _channelUserRoleRepository.GetUserRoleInChannelAsync(channelId, userId);
+            if (roles == null) return false;
+            return roles.Contains("ChannelAdmin") || roles.Contains("AssignmentAdmin") || roles.Contains("AssignmentEditor");
+        }
+
         [HttpGet("channel/{channelId}")]
         public async Task<IActionResult> GetAssignmentsByChannel(Guid channelId)
         {
             var userId = GetUserId();
             
-            if (!await _permissionService.CanReadAsync(channelId, userId))
+            if (!await IsChannelMemberAsync(channelId, userId))
                 return Forbid();
 
             var channelAssignments = await _channelAssignmentRepository.GetAssignmentsByChannelAsync(channelId);
@@ -58,7 +70,7 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
             
-            if (!await _permissionService.CanReadAsync(channelId, userId))
+            if (!await IsChannelMemberAsync(channelId, userId))
                 return Forbid();
 
             var assignment = await _assignmentRepository.GetAssignmentByIdAsync(id);
@@ -81,7 +93,7 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
             
-            if (!await _permissionService.CanCRUDCourseAsync(dto.ChannelId, userId))
+            if (!await CanManageCourseAsync(dto.ChannelId, userId))
                 return Forbid();
 
             var assignment = new Assignment
@@ -110,7 +122,7 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
             
-            if (!await _permissionService.CanUpdateDeleteContentAsync(channelId, userId))
+            if (!await CanManageCourseAsync(channelId, userId))
                 return Forbid();
 
             var assignment = await _assignmentRepository.GetAssignmentByIdAsync(id);
@@ -130,7 +142,7 @@ namespace backend.Controllers
         {
             var userId = GetUserId();
             
-            if (!await _permissionService.CanUpdateDeleteContentAsync(channelId, userId))
+            if (!await CanManageCourseAsync(channelId, userId))
                 return Forbid();
 
             var assignment = await _assignmentRepository.GetAssignmentByIdAsync(id);

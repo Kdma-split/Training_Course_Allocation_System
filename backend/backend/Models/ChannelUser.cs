@@ -9,7 +9,7 @@
         public Guid UserId { get; set; }
         public User User { get; set; }
 
-        public Role Role { get; set; }
+        //public Role Role { get; set; }     // A user can have multiple roles
         public bool isActive { get; set; } = true;  // determines whether the user is removed from the channel or not... (soft delete)
 
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;

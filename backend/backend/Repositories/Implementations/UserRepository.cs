@@ -14,6 +14,12 @@ namespace backend.Repositories.Implementations
             _context = context;
         }
 
+        public async Task<string?> GetUserRole(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            return user?.Role;
+        }
+
         public async Task<User?> GetUserByIdAsync(Guid id)
         {
             return await _context.Users.FindAsync(id);
@@ -76,6 +82,12 @@ namespace backend.Repositories.Implementations
         public async Task<bool> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<string?> GetUserRoleAsync(Guid userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user?.Role;
         }
     }
 }

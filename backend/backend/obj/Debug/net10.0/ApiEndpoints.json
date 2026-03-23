@@ -1,5 +1,57 @@
 [
   {
+    "ContainingType": "backend.Controllers.ChannelsApprovalController",
+    "Method": "SendApproval",
+    "RelativePath": "api/{ChannelsApproval}/{channelId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "backend.Dto.Channel.CreateChannelApprovalDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "ChannelsApproval",
+        "Type": "",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelsApprovalController",
+    "Method": "ListApprovalsById",
+    "RelativePath": "api/{ChannelsApproval}/{channelId}/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "ChannelsApproval",
+        "Type": "",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "backend.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
@@ -388,6 +440,48 @@
     "Parameters": [
       {
         "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelsApprovalController",
+    "Method": "RejectApprovals",
+    "RelativePath": "Reject/{channelId}/{channelApprovalId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "channelApprovalId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.ChannelsApprovalController",
+    "Method": "ResolveApprovals",
+    "RelativePath": "Resolve/{channelId}/{channelApprovalId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "channelId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "channelApprovalId",
         "Type": "System.Guid",
         "IsRequired": true
       }

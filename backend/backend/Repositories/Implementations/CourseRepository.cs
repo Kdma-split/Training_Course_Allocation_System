@@ -49,6 +49,12 @@ namespace backend.Repositories.Implementations
             return true;
         }
 
+        public async Task<bool> IsCourseExistsByDomainAsync(Guid courseId, Guid domainId)
+        {
+            var course = await _context.Courses.SingleOrDefaultAsync(c => c.DomainId == domainId && c.Id == courseId);
+            return course != null;
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync() > 0;

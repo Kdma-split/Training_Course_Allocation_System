@@ -1,6 +1,3 @@
-//  THIS API WILL BE CALLED IN THE CASE OF MAKING A COURSE IN COLLABORATION WITH SINGLE CHANNEL ONLY [AS, ROLE WITHIN A SINGLE CHANNEL MATTER IN THIS CASE, ALL USER WILL HAVE A FIXED ROLE AS IN THE ChannelUser DB TABLE]...
-
-
 using backend.Data;
 using backend.Dto;
 using backend.Models;
@@ -13,25 +10,22 @@ using System.Text.Json;
 
 namespace backend.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class SingleChannelCoursesController : ControllerBase
+    public class SingleChannelCourseApprovalController : ControllerBase
     {
         private readonly ICourseRepository _courseRepository;
         private readonly IChannelCourseRepository _channelCourseRepository;
         private readonly IChannelUserRoleRepository _channelUserRoleRepository;
-        private readonly IChannelUserRepository _channelUserRepository;
         private readonly ICourseApprovalRepository _courseApprovalRepository;
         private readonly IUserRepository _userRepository;
         private readonly TrainingCourseContext _context;
 
-        public SingleChannelCoursesController(
+        public SingleChannelCourseApprovalController(
             ICourseRepository courseRepository,
             IChannelCourseRepository channelCourseRepository,
             IChannelUserRoleRepository channelUserRoleRepository,
-            IChannelUserRepository channelUserRepository,
             ICourseApprovalRepository courseApprovalRepository,
             IUserRepository userRepository,
             TrainingCourseContext context)
@@ -39,7 +33,6 @@ namespace backend.Controllers
             _courseRepository = courseRepository;
             _channelCourseRepository = channelCourseRepository;
             _channelUserRoleRepository = channelUserRoleRepository;
-            _channelUserRepository = channelUserRepository;
             _courseApprovalRepository = courseApprovalRepository;
             _userRepository = userRepository;
             _context = context;
@@ -84,132 +77,7 @@ namespace backend.Controllers
             return course.CreatedBy == userId;
         }
 
-        // VIEW - Any channel member can view courses
-        [HttpGet("channel/{channelId}")]
-        public async Task<IActionResult> GetCoursesByChannel(Guid channelId)
-        {
-            var userId = GetUserId();
-            
-            if (!await IsChannelMemberAsync(channelId, userId))
-                return Forbid();
-
-            var channelCourses = await _channelCourseRepository.GetCoursesByChannelAsync(channelId);
-            var courses = channelCourses.Select(cc => new CourseResponseDto
-            {
-                Id = cc.Course.Id,
-                Title = cc.Course.Title,
-                Description = cc.Course.Description,
-                DomainId = cc.Course.DomainId,
-                NumberAttended = cc.Course.NumberAttended,
-                CreatedAt = cc.Course.CreatedAt,
-                CreatedBy = cc.Course.CreatedBy
-            });
-
-            return Ok(courses);
-        }
-
-        // VIEW - Get single course
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCourse(Guid id, [FromQuery] Guid channelId)
-        {
-            var userId = GetUserId();
-            
-            if (!await IsChannelMemberAsync(channelId, userId))
-                return Forbid();
-
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
-                return NotFound();
-
-            var response = new CourseResponseDto
-            {
-                Id = course.Id,
-                Title = course.Title,
-                Description = course.Description,
-                DomainId = course.DomainId,
-                NumberAttended = course.NumberAttended,
-                CreatedAt = course.CreatedAt,
-                CreatedBy = course.CreatedBy
-            };
-
-            return Ok(response);
-        }
-
-        // CREATE - CourseAuthor can create courses
         [HttpPost]
-        public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto)
-        {
-            var userId = GetUserId();
-            
-            if (!await CanManageCourseAsync(dto.ChannelId, userId))
-                return Forbid();
-
-            var course = new Course
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                DomainId = dto.DomainId,
-                NumberAttended = 0,
-                CreatedBy = userId
-            };
-
-            var createdCourse = await _courseRepository.CreateCourseAsync(course);
-
-            var channelCourse = new ChannelCourse
-            {
-                ChannelId = dto.ChannelId,
-                CourseId = createdCourse.Id,
-                IsActive = true
-            };
-
-            await _channelCourseRepository.AddCourseToChannelAsync(channelCourse);
-
-            return CreatedAtAction(nameof(GetCourse), new { id = createdCourse.Id, channelId = dto.ChannelId }, createdCourse);
-        }
-
-        // UPDATE - CourseAuthor can update own courses, CourseAdmin can update any course
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto dto, [FromQuery] Guid channelId)
-        {
-            var userId = GetUserId();
-            
-            if (!await IsCourseAuthorOrAdminAsync(channelId, id, userId))
-                return Forbid();
-
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
-                return NotFound();
-
-            course.Title = dto.Title;
-            course.Description = dto.Description;
-            course.DomainId = dto.DomainId;
-            course.UpdatedAt = DateTime.UtcNow;
-
-            var updatedCourse = await _courseRepository.UpdateCourseAsync(course);
-
-            return Ok(updatedCourse);
-        }
-
-        // DELETE - CourseAuthor can delete own courses, CourseAdmin can delete any course
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCourse(Guid id, [FromQuery] Guid channelId)
-        {
-            var userId = GetUserId();
-            
-            if (!await IsCourseAuthorOrAdminAsync(channelId, id, userId))
-                return Forbid();
-
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
-                return NotFound();
-
-            await _courseRepository.DeleteCourseAsync(id);
-
-            return NoContent();
-        }
-
-        // APPROVAL - Create a new course approval
-        [HttpPost("approval")]
         public async Task<IActionResult> CreateApproval([FromBody] CreateCourseApprovalDto dto)
         {
             var userId = GetUserId();
@@ -284,8 +152,7 @@ namespace backend.Controllers
             return CreatedAtAction(nameof(GetApproval), new { id = createdApproval.CourseApprovalId }, createdApproval);
         }
 
-        // APPROVAL - Get single approval
-        [HttpGet("approval/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetApproval(Guid id)
         {
             var approval = await _courseApprovalRepository.GetCourseApprovalByIdAsync(id);
@@ -304,8 +171,7 @@ namespace backend.Controllers
             });
         }
 
-        // APPROVAL - Approve an approval (Admin only)
-        [HttpPut("approval/{id}/approve")]
+        [HttpPut("{id}/approve")]
         public async Task<IActionResult> ApproveApproval(Guid id, [FromQuery] Guid channelId)
         {
             var userId = GetUserId();
@@ -334,8 +200,7 @@ namespace backend.Controllers
             return Ok(new { message = "Approval approved successfully" });
         }
 
-        // APPROVAL - Reject an approval (Admin only)
-        [HttpPut("approval/{id}/reject")]
+        [HttpPut("{id}/reject")]
         public async Task<IActionResult> RejectApproval(Guid id, [FromQuery] Guid channelId)
         {
             var userId = GetUserId();
@@ -364,8 +229,7 @@ namespace backend.Controllers
             return Ok(new { message = "Approval rejected successfully" });
         }
 
-        // APPROVAL - List all approvals (Admin only)
-        [HttpGet("approvals/all")]
+        [HttpGet("all")]
         public async Task<IActionResult> ListAllApprovals([FromQuery] Guid channelId)
         {
             var userId = GetUserId();
@@ -395,8 +259,7 @@ namespace backend.Controllers
             return Ok(response);
         }
 
-        // APPROVAL - List pending approvals (Admin only)
-        [HttpGet("approvals/pending")]
+        [HttpGet("pending")]
         public async Task<IActionResult> ListPendingApproval([FromQuery] Guid channelId)
         {
             var userId = GetUserId();
@@ -426,8 +289,7 @@ namespace backend.Controllers
             return Ok(response);
         }
 
-        // APPROVAL - List approved approvals (Admin only)
-        [HttpGet("approvals/approved")]
+        [HttpGet("approved")]
         public async Task<IActionResult> ListApprovedApprovals([FromQuery] Guid channelId)
         {
             var userId = GetUserId();
@@ -457,8 +319,7 @@ namespace backend.Controllers
             return Ok(response);
         }
 
-        // APPROVAL - List rejected approvals (Admin only)
-        [HttpGet("approvals/rejected")]
+        [HttpGet("rejected")]
         public async Task<IActionResult> ListRejectedApprovals([FromQuery] Guid channelId)
         {
             var userId = GetUserId();
@@ -488,8 +349,7 @@ namespace backend.Controllers
             return Ok(response);
         }
 
-        // APPROVAL - List user's own approvals
-        [HttpGet("approvals/my")]
+        [HttpGet("my")]
         public async Task<IActionResult> ListUserApprovals([FromQuery] Guid channelId)
         {
             var userId = GetUserId();

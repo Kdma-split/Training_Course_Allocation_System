@@ -15,6 +15,8 @@ namespace backend.Models
         public Guid AdminId { get; set; }
         public User Admin { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
        // public int NumApprovals { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

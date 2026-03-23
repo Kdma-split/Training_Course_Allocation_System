@@ -3,7 +3,7 @@
     public class CourseApproval
     {
         public Guid CourseApprovalId { get; set; }
-        public Guid CourseChannelUserId { get; set; }
+        public int CourseChannelUserId { get; set; }
         public string ApprovalDescription { get; set; }
         public string Status { get; set; } = "pending"; // pending, approved, rejected
         public bool IsActive { get; set; }

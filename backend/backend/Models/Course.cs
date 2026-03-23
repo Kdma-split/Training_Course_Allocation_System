@@ -7,10 +7,12 @@
         public string Title { get; set; }
         public string Description { get; set; }
 
-        public int DomainId { get; set; }
+        public Guid DomainId { get; set; }
         public Domain Domain { get; set; }
 
         public int NumberAttended { get; set; }
+
+        public Guid CreatedBy { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

@@ -20,6 +20,12 @@ namespace backend.Repositories.Implementations
                 .FirstOrDefaultAsync(cc => cc.ChannelId == channelId && cc.CourseId == courseId);
         }
 
+        public async Task<ChannelCourse?> GetChannelCourseByIdAsync(Guid channelCourseId)
+        {
+            return await _context.ChannelCourses
+                .FirstOrDefaultAsync(cc => cc.ChannelCourseId == channelCourseId);
+        }
+
         public async Task<IEnumerable<ChannelCourse>> GetCoursesByChannelAsync(Guid channelId)
         {
             return await _context.ChannelCourses
@@ -46,6 +52,19 @@ namespace backend.Repositories.Implementations
         {
             var channelCourse = await _context.ChannelCourses
                 .FirstOrDefaultAsync(cc => cc.ChannelId == channelId && cc.CourseId == courseId);
+            
+            if (channelCourse == null)
+                return false;
+
+            _context.ChannelCourses.Remove(channelCourse);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RemoveCourseFromChannelAsync(Guid channelCourseId)
+        {
+            var channelCourse = await _context.ChannelCourses
+                .FirstOrDefaultAsync(cc => cc.ChannelCourseId == channelCourseId);
             
             if (channelCourse == null)
                 return false;

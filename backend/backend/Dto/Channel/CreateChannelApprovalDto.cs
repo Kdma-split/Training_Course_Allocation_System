@@ -1,5 +1,4 @@
-﻿using backend.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace backend.Dto.Channel
 {
@@ -14,7 +13,7 @@ namespace backend.Dto.Channel
         [Required]
         [Range(0, 150)]
         public int ApprovalUserAge{ get; set; }
-        public Role ApprovalUserRole{ get; set; }
+        public string ApprovalUserRole{ get; set; }
 
         public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;    
         public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;    
