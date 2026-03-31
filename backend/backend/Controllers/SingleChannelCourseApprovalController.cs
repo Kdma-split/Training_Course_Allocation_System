@@ -4,7 +4,6 @@ using backend.Models;
 using backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -20,7 +19,7 @@ namespace backend.Controllers
         private readonly IChannelUserRoleRepository _channelUserRoleRepository;
         private readonly ICourseApprovalRepository _courseApprovalRepository;
         private readonly IUserRepository _userRepository;
-        private readonly TrainingCourseContext _context;
+        private readonly ICourseChannelUserRepository _courseChannelUserRepository;
 
         public SingleChannelCourseApprovalController(
             ICourseRepository courseRepository,
@@ -28,14 +27,15 @@ namespace backend.Controllers
             IChannelUserRoleRepository channelUserRoleRepository,
             ICourseApprovalRepository courseApprovalRepository,
             IUserRepository userRepository,
-            TrainingCourseContext context)
+            ICourseChannelUserRepository courseChannelUserRepository
+         )
         {
             _courseRepository = courseRepository;
             _channelCourseRepository = channelCourseRepository;
             _channelUserRoleRepository = channelUserRoleRepository;
-            _courseApprovalRepository = courseApprovalRepository;
+            _courseApprovalRepository = courseApprovalRepository; 
             _userRepository = userRepository;
-            _context = context;
+            _courseChannelUserRepository = courseChannelUserRepository;
         }
 
         private Guid GetUserId()
@@ -113,13 +113,11 @@ namespace backend.Controllers
                 return BadRequest("Invalid category. Must be 'create' or 'update'");
             }
 
-            var courseChannelUser = await _context.CourseChannelUsers
-                .FirstOrDefaultAsync(ccu => ccu.UserId == userId && ccu.ChannelCourse != null && ccu.ChannelCourse.ChannelId == channelId);
+            var courseChannelUser = await _courseChannelUserRepository.GetByUserIdAndChannelIdAsync(userId, channelId);
 
             if (courseChannelUser == null)
             {
-                var channelCourse = await _context.ChannelCourses
-                    .FirstOrDefaultAsync(cc => cc.ChannelId == channelId);
+                var channelCourse = await _channelCourseRepository.GetFirstChannelCourseByChannelIdAsync(channelId);
                 
                 if (channelCourse == null)
                     return NotFound("Channel not found");
@@ -133,8 +131,7 @@ namespace backend.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                _context.CourseChannelUsers.Add(courseChannelUser);
-                await _context.SaveChangesAsync();
+                courseChannelUser = await _courseChannelUserRepository.CreateAsync(courseChannelUser);
             }
 
             var approval = new CourseApproval
@@ -350,7 +347,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("my")]
-        public async Task<IActionResult> ListUserApprovals([FromQuery] Guid channelId)
+        public async Task<IActionResult> ListUserApprovalsChannel([FromQuery] Guid? channelId)
         {
             var userId = GetUserId();
 
@@ -358,14 +355,35 @@ namespace backend.Controllers
             if (user == null)
                 return NotFound("User not found");
 
-            if (!await IsChannelMemberAsync(channelId, userId))
-                return Forbid("User is not a member of this channel");
+            if (channelId.HasValue)
+            {
+                if (!await IsChannelMemberAsync(channelId.Value, userId))
+                    return Forbid("User is not a member of this channel");
+
+                var approvs = await _courseApprovalRepository.GetAllApprovalsByUserIdAsync(userId);
+
+                var filteredApprovs = approvs.Where(a =>
+                    a.CourseChannelUser.ChannelCourse != null &&
+                    a.CourseChannelUser.ChannelCourse.ChannelId == channelId);
+
+                var res = filteredApprovs.Select(a => new CourseApprovalResponseDto
+                {
+                    CourseApprovalId = a.CourseApprovalId,
+                    UserId = a.CourseChannelUser.UserId,
+                    ApprovalDescription = a.ApprovalDescription,
+                    Status = a.Status,
+                    IsActive = a.IsActive,
+                    CreatedAt = a.CreatedAt,
+                    UpdatedAt = a.UpdatedAt
+                });
+
+                return Ok(res);
+            }
 
             var approvals = await _courseApprovalRepository.GetAllApprovalsByUserIdAsync(userId);
-            
-            var filteredApprovals = approvals.Where(a => 
-                a.CourseChannelUser.ChannelCourse != null && 
-                a.CourseChannelUser.ChannelCourse.ChannelId == channelId);
+
+            var filteredApprovals = approvals.Where(a =>
+                a.CourseChannelUser.ChannelCourse != null);
 
             var response = filteredApprovals.Select(a => new CourseApprovalResponseDto
             {
@@ -377,8 +395,371 @@ namespace backend.Controllers
                 CreatedAt = a.CreatedAt,
                 UpdatedAt = a.UpdatedAt
             });
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}")]
+        public async Task<IActionResult> GetApprovalsByChannel(Guid channelId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetAllApprovalsByChannelAsync(channelId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
 
             return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}")]
+        public async Task<IActionResult> GetApprovalsByChannelCourse(Guid channelId, Guid courseId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetAllApprovalsByChannelCourseAsync(channelId, courseId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/user/{memberId}")]
+        public async Task<IActionResult> GetApprovalsByChannelUser(Guid channelId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetApprovalsByChannelIdUserIdAsync(channelId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}/user/{memberId}")]
+        public async Task<IActionResult> GetApprovalsByChannelCourseUser(Guid channelId, Guid courseId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetAllApprovalsByChannelCourseUserAsync(channelId, courseId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/pending")]
+        public async Task<IActionResult> GetPendingApprovalsByChannel(Guid channelId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetPendingApprovalsByChannelAsync(channelId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}/pending")]
+        public async Task<IActionResult> GetPendingApprovalsByChannelCourse(Guid channelId, Guid courseId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetPendingApprovalsByChannelCourseAsync(channelId, courseId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/user/{memberId}/pending")]
+        public async Task<IActionResult> GetPendingApprovalsByChannelUser(Guid channelId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetPendingApprovalsByChannelCourseUserAsync(channelId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/approved")]
+        public async Task<IActionResult> GetApprovedApprovalsByChannel(Guid channelId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetApprovedApprovalsByChannelAsync(channelId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}/approved")]
+        public async Task<IActionResult> GetApprovedApprovalsByChannelCourse(Guid channelId, Guid courseId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetApprovedApprovalsByChannelCourseAsync(channelId, courseId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/user/{memberId}/approved")]
+        public async Task<IActionResult> GetApprovedApprovalsByChannelUser(Guid channelId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetApprovedApprovalsByChannelIdUserIdAsync(channelId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}/user/{memberId}/approved")]
+        public async Task<IActionResult> GetApprovedApprovalsByChannelCourseUser(Guid channelId, Guid courseId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetApprovedApprovalsByChannelCourseAsync(channelId, courseId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/rejected")]
+        public async Task<IActionResult> GetRejectedApprovalsByChannel(Guid channelId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetRejectedApprovalsByChannelAsync(channelId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}/rejected")]
+        public async Task<IActionResult> GetRejectedApprovalsByChannelCourse(Guid channelId, Guid courseId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetRejectedApprovalsByChannelCourseAsync(channelId, courseId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/user/{memberId}/rejected")]
+        public async Task<IActionResult> GetRejectedApprovalsByChannelUser(Guid channelId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetRejectedApprovalsByChannelIdUserIdAsync(channelId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("channel/{channelId}/course/{courseId}/user/{memberId}/rejected")]
+        public async Task<IActionResult> GetRejectedApprovalsByChannelCourseUser(Guid channelId, Guid courseId, Guid memberId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelMemberAsync(channelId, userId))
+                return Forbid("User is not a member of this channel");
+
+            var approvals = await _courseApprovalRepository.GetRejectedApprovalsByChannelCourseUserAsync(channelId, courseId, memberId);
+            var response = approvals.Select(a => new CourseApprovalResponseDto
+            {
+                CourseApprovalId = a.CourseApprovalId,
+                UserId = a.CourseChannelUser.UserId,
+                ApprovalDescription = a.ApprovalDescription,
+                Status = a.Status,
+                IsActive = a.IsActive,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            });
+
+            return Ok(response);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteApproval(Guid id, [FromQuery] Guid channelId)
+        {
+            var userId = GetUserId();
+
+            if (!await IsChannelAdminAsync(channelId, userId))
+                return Forbid("Only admins can delete approvals");
+
+            var approval = await _courseApprovalRepository.GetCourseApprovalByIdAsync(id);
+            if (approval == null)
+                return NotFound();
+
+            var success = await _courseApprovalRepository.DeleteCourseApprovalAsync(id);
+            if (!success)
+                return BadRequest("Failed to delete approval");
+
+            return Ok(new { message = "Approval deleted successfully" });
         }
     }
 }

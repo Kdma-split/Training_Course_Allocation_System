@@ -26,6 +26,12 @@ namespace backend.Repositories.Implementations
                 .FirstOrDefaultAsync(cc => cc.ChannelCourseId == channelCourseId);
         }
 
+        public async Task<ChannelCourse?> GetFirstChannelCourseByChannelIdAsync(Guid channelId)
+        {
+            return await _context.ChannelCourses
+                .FirstOrDefaultAsync(cc => cc.ChannelId == channelId);
+        }
+
         public async Task<IEnumerable<ChannelCourse>> GetCoursesByChannelAsync(Guid channelId)
         {
             return await _context.ChannelCourses

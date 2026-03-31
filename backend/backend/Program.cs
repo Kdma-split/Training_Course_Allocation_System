@@ -50,6 +50,7 @@ builder.Services.AddScoped<IChannelAssignmentRepository, ChannelAssignmentReposi
 builder.Services.AddScoped<IChannelApprovalsRepository, ChannelApprovalRepository>();
 builder.Services.AddScoped<IChannelUserRoleRepository, ChannelUserRoleRepository>();
 builder.Services.AddScoped<ICourseApprovalRepository, CourseApprovalRepository>();
+builder.Services.AddScoped<ICourseChannelUserRepository, CourseChannelUserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;

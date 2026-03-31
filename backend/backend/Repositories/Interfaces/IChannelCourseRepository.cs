@@ -6,6 +6,7 @@ namespace backend.Repositories.Interfaces
     {
         Task<ChannelCourse?> GetChannelCourseAsync(Guid channelId, Guid courseId);
         Task<ChannelCourse?> GetChannelCourseByIdAsync(Guid channelCourseId);
+        Task<ChannelCourse?> GetFirstChannelCourseByChannelIdAsync(Guid channelId);
         Task<IEnumerable<ChannelCourse>> GetCoursesByChannelAsync(Guid channelId);
         Task<ChannelCourse> AddCourseToChannelAsync(ChannelCourse channelCourse);
         Task<ChannelCourse> UpdateChannelCourseAsync(ChannelCourse channelCourse);

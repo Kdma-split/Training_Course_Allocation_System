@@ -25,7 +25,7 @@ namespace backend.Controllers
         private readonly IChannelUserRepository _channelUserRepository;
         private readonly ICourseApprovalRepository _courseApprovalRepository;
         private readonly IUserRepository _userRepository;
-        private readonly TrainingCourseContext _context;
+        private readonly ICourseChannelUserRepository _courseChannelUserRepository;
 
         public SingleChannelCoursesController(
             ICourseRepository courseRepository,
@@ -34,7 +34,7 @@ namespace backend.Controllers
             IChannelUserRepository channelUserRepository,
             ICourseApprovalRepository courseApprovalRepository,
             IUserRepository userRepository,
-            TrainingCourseContext context)
+            ICourseChannelUserRepository courseChannelUserRepository)
         {
             _courseRepository = courseRepository;
             _channelCourseRepository = channelCourseRepository;
@@ -42,7 +42,7 @@ namespace backend.Controllers
             _channelUserRepository = channelUserRepository;
             _courseApprovalRepository = courseApprovalRepository;
             _userRepository = userRepository;
-            _context = context;
+            _courseChannelUserRepository = courseChannelUserRepository;
         }
 
         private Guid GetUserId()
@@ -245,13 +245,11 @@ namespace backend.Controllers
                 return BadRequest("Invalid category. Must be 'create' or 'update'");
             }
 
-            var courseChannelUser = await _context.CourseChannelUsers
-                .FirstOrDefaultAsync(ccu => ccu.UserId == userId && ccu.ChannelCourse != null && ccu.ChannelCourse.ChannelId == channelId);
+            var courseChannelUser = await _courseChannelUserRepository.GetByUserIdAndChannelIdAsync(userId, channelId);
 
             if (courseChannelUser == null)
             {
-                var channelCourse = await _context.ChannelCourses
-                    .FirstOrDefaultAsync(cc => cc.ChannelId == channelId);
+                var channelCourse = await _channelCourseRepository.GetFirstChannelCourseByChannelIdAsync(channelId);
                 
                 if (channelCourse == null)
                     return NotFound("Channel not found");
@@ -265,8 +263,7 @@ namespace backend.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                _context.CourseChannelUsers.Add(courseChannelUser);
-                await _context.SaveChangesAsync();
+                courseChannelUser = await _courseChannelUserRepository.CreateAsync(courseChannelUser);
             }
 
             var approval = new CourseApproval
